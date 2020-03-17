@@ -127,7 +127,7 @@ EOF
 # 產生 Django 正式環境密鑰
 # ###################################################################
 echo "Generating Django secret key..."
-DJANGO_SECRET_KEY=`openssl rand -base64 48`
+DJANGO_SECRET_KEY=`openssl rand -base64 32`
 if [ $? -ne 0 ]; then
     error_exit "Error creating secret key."
 fi
@@ -135,7 +135,7 @@ fi
 # 產生 PostgreSQL 資料庫密碼
 # ###################################################################
 echo "Creating secure password for database role..."
-DBPASSWORD=`openssl rand -base64 32`
+DBPASSWORD=`openssl rand -base64 29 | tr -d "=+/" | cut -c1-25`
 if [ $? -ne 0 ]; then
     error_exit "Error creating secure password for database role."
 fi
@@ -174,7 +174,6 @@ ListenStream=$APPFOLDERPATH/run/$APPNAME.sock
 WantedBy=sockets.target
 EOF
 mv /tmp/process.socket /etc/systemd/system/$APPNAME.socket
-chown $APPNAME:$GROUPNAME /etc/systemd/system/$APPNAME.socket
 
 # 新增一個 systemd service
 echo "新增一個 systemd service"
@@ -187,7 +186,6 @@ After=network.target
 [Service]
 User=$APPNAME
 Group=$GROUPNAME
-NUM_WORKERS=3
 WorkingDirectory=$APPFOLDERPATH/$APPNAME
 ExecStart=$APPFOLDERPATH/bin/gunicorn \
         --access-logfile - \
@@ -199,7 +197,6 @@ ExecStart=$APPFOLDERPATH/bin/gunicorn \
 WantedBy=multi-user.target
 EOF
 mv /tmp/process.service /etc/systemd/system/$APPNAME.service
-chown $APPNAME:$GROUPNAME /etc/systemd/system/$APPNAME.service
 
 # ###################################################################
 # Create nginx template in $APPFOLDERPATH/nginx
@@ -247,15 +244,14 @@ server {
        proxy_set_header Host \$http_host;
        proxy_set_header X-Forwarded-Proto \$scheme;
        proxy_redirect off;
-       proxy_pass http://unix:$APPFOLDERPATH/run/$APPNAME.sock;
+       proxy_pass http://$APPSERVERNAME;
    }
 }
 EOF
 # make a symbolic link to the nginx conf file in sites-enabled
 ln -sf $APPFOLDERPATH/nginx/$APPNAME.conf /etc/nginx/sites-enabled/$APPNAME.conf
 
-systemctl start $APPNAME.socket
 systemctl enable $APPNAME.socket
-systemctl daemon-reload
+systemctl start $APPNAME.socket
 systemctl restart nginx
 
