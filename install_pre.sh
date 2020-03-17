@@ -21,9 +21,6 @@ LINUX_REPO=('universe' 'ppa:certbot/certbot')
 LINUX_PREREQ=('git' 'build-essential' 'python3-dev' 'python3-pip' 'nginx' 'postgresql' 'postgresql-contrib' 'libpq-dev' 'software-properties-common' 'certbot' 'python-certbot-nginx' 'python3-certbot-dns-cloudflare')
 PYTHON_PREREQ=('virtualenv')
 
-# upgrade pip
-echo "upgrade Global pip3 to lastest"
-
 # Test prerequisites
 echo "Checking if required packages are installed..."
 declare -a MISSING
@@ -50,6 +47,8 @@ for pkg in "${LINUX_PREREQ[@]}"
         fi
     done
 
+# upgrade pip
+echo "upgrade Global pip3 to lastest"
 $PIP install --upgrade pip
 
 for ppkg in "${PYTHON_PREREQ[@]}"
