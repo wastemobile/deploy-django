@@ -201,6 +201,7 @@ mv /tmp/process.service /etc/systemd/system/$APPNAME.service
 # ###################################################################
 # Create nginx template in $APPFOLDERPATH/nginx
 # ###################################################################
+echo "自動修改 Nginx Server Block"
 mkdir -p $APPFOLDERPATH/nginx
 APPSERVERNAME=$APPNAME
 APPSERVERNAME+=_gunicorn
@@ -251,7 +252,7 @@ EOF
 # make a symbolic link to the nginx conf file in sites-enabled
 ln -sf $APPFOLDERPATH/nginx/$APPNAME.conf /etc/nginx/sites-enabled/$APPNAME.conf
 
-systemctl enable $APPNAME.socket
-systemctl start $APPNAME.socket
+echo "啟動 Gunicorn 與 Nginx，試著瀏覽網站 https://$DOMAINNAME"
+systemctl enable --now $APPNAME.socket
 systemctl restart nginx
 
