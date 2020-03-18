@@ -70,7 +70,7 @@ source ./bin/activate
 cd $APPNAME
 git pull
 echo "Updating python packages for the app..."
-if [ -f 'requirements.txt']; then
+if [ -f 'requirements.txt' ]; then
   pip install -r requirements.txt || error_exit "找不到 requirements.txt，停止更新"
 fi
 python manage.py migrate
