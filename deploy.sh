@@ -108,7 +108,7 @@ for dpkg in "${DJANGO_PKGS[@]}"
     done
 # create the default folders where we store django app's resources
 echo "Creating static file folders..."
-mkdir logs nginx run || error_exit "Error creating static folders"
+mkdir logs nginx run service || error_exit "Error creating static folders"
 # Create the UNIX socket file for WSGI interface
 echo "Creating WSGI interface UNIX socket file..."
 python -c "import socket as s; sock = s.socket(s.AF_UNIX); sock.bind('./run/$APPNAME.sock')"
@@ -173,7 +173,8 @@ ListenStream=$APPFOLDERPATH/run/$APPNAME.sock
 [Install]
 WantedBy=sockets.target
 EOF
-mv /tmp/process.socket /etc/systemd/system/$APPNAME.socket
+mv /tmp/process.socket $APPFOLDERPATH/service/$APPNAME.socket
+ln -sf $APPFOLDERPATH/service/$APPNAME.socket /etc/systemd/system/$APPNAME.socket
 
 # 新增一個 systemd service
 echo "新增一個 systemd service"
@@ -196,7 +197,8 @@ ExecStart=$APPFOLDERPATH/bin/gunicorn \
 [Install]
 WantedBy=multi-user.target
 EOF
-mv /tmp/process.service /etc/systemd/system/$APPNAME.service
+mv /tmp/process.service $APPFOLDERPATH/service/$APPNAME.service
+ln -sf $APPFOLDERPATH/service/$APPNAME.service /etc/systemd/system/$APPNAME.service
 
 # ###################################################################
 # Create nginx template in $APPFOLDERPATH/nginx
