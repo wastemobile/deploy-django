@@ -57,16 +57,21 @@
 - 備份 `/webapps/appname_project/appname/config/.env`。
 - 添加 git 倉儲、或以本地的 django repo 替換。
 
-## deploy_sub
+## deploy_ci
 
+添加一個持續整合更新的 deploy_ci.sh，執行時一樣輸入 $APPNAME，會自動檢查該應用是否存在。
+
+搭配 GitHub Actions 一個最簡單的 ssh-action 就很好用了，因為不需要在每一次主分支有異動就部署，所以設置為 release published 驅動。
+
+這也才發現原來一般使用 git tag 對 GitHub 來說並不算「正式發佈」，終端機可能得要安裝 GitHub 專用 CLI 工具 - [hub](https://github.com/github/hub) 才能做到。
 
 
 ## TODO
 
-接下來應該是要搞定 Django 的持續部署。
-
-- 採 GitHub workflow，主分支若有更新，就自動部署到主機上。
-- 需執行 migrate 程序。
+- 針對次網域的新應用設置（套用相同的 Let's Encrypt 證書等）。
+- （已完成）接下來應該是要搞定 Django 的持續部署。
+	- 採 GitHub workflow，且設定為「正式發佈」才自動部署到主機上。
+	- GitHub Action 採用最簡單的 ssh-action，苦工其實都在 deploy_ci.sh 裡進行，主要還是為了讓使用者權限等皆維持原樣。
 
 
 
