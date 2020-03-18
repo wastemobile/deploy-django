@@ -69,9 +69,13 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 
 添加一個持續整合更新的 deploy_ci.sh，執行時一樣輸入 $APPNAME，會自動檢查該應用是否存在。
 
-搭配 GitHub Actions 一個最簡單的 ssh-action 就很好用了，因為不需要在每一次主分支有異動就部署，所以設置為 release published 驅動。
+搭配 GitHub Actions 一個最簡單的 ssh-action 就很好用了，因為不需要在每一次主分支有異動就部署，所以設置為 release published 驅動。修改 `main.yml` 後搬到 Django 專案倉儲的 `.github/workflows` 目錄。
+
+前往 GitHub 倉儲，建立四個 secrets，分別是 HOST, USERNAME, KEY 與 PORT。
 
 > 這也才發現原來一般使用 git tag 對 GitHub 來說並不算「正式發佈」，終端機可能得要安裝 GitHub 專用 CLI 工具 - [hub](https://github.com/github/hub) 才能做到。
+
+若持續部署使用的是 GitHub 私人倉儲，必須讓 `appname` 用戶記得 github 的密碼（＝額外替這主機生成的 personal token），先輸入 `git config --global credential.helper store`、再執行一次 `git pull`，就會將 token 記下來了，寫在家目錄（亦即 `/webapps/appname_project/.git-credentials`）。
 
 發布前的準備：
 
@@ -79,6 +83,8 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 2. (v)python manage.py collectstatic
 3. git add . && git commit -m 'commit message'
 4. git push
+
+接著到 GitHub 網站（或在本機安裝 hub）進行發佈，就會自動部署新版本了。
 
 > Django static files 是採用本地集結、納入 git 管理的模式，就不需要在正式機上執行這個程序，畢竟自動部署能少些步驟、減少錯誤的發生比較好。
 
