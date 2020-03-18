@@ -1,14 +1,22 @@
 # Django 自動化佈署準備程序
 
-新建一個 Linode VPS，完成主機預整備程序（新建非 root 用戶、基礎安全防護等）。
+## 預先準備
 
-`git clone https://github.com/wastemobile/deploy-django.git`
+1. 新建一個 Linode VPS，完成主機預整備程序（新建非 root 用戶、使用金鑰登入、禁止 root 登入、禁止密碼登入、修改 ssh port；修改時區 tzdata、設置 hostname、設置 ufw 防火牆，最後安裝 fail2ban，編寫一份自己的監獄規則 `/etc/fail2ban/jail.local`）。
+2. 取回 bash scripts `git clone https://github.com/wastemobile/deploy-django.git`
+3. 將 Cloudflare API credentials 寫在 `~/.secrets/cloudflare.ini`，並更改權限、提高一點安全性。
 
-將 Cloudflare API credentials 寫在 `~/.secrets/cloudflare.ini`，並更改權限、提高一點安全性。
+## 安裝
 
 1. 首先執行 `sudo -H ./install_pre.sh`，會安裝各種所需的系統套件。
 2. 執行 `sudo ./certbot_wildcard.sh example.com`，會呼叫 cloudflare 驗證、取得 wildcard 證書等。
 3. 執行 `sudo ./deploy.sh appname example.com`
+
+所有的應用皆會安裝在 `/webapps` 目錄下，以 `appname_project` 為名，Django 應用則安裝在 `/webapps/appname_project/appname` 目錄下（manage.py），主應用皆以 `config` 為名。
+
+Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf` 到 `/etc/nginx/sites-enabled/` 目錄。
+
+設置好 Wsgi 與 Gunicorn 的連接（`/webapps/appname_project/service/appname.socket`），以及 systemd 管理的服務（`appname.service`），同樣 `ln -sf` 到 `/etc/systemd/system/` 目錄下。
 
 ## install_pre
 
@@ -73,6 +81,20 @@
 4. git push
 
 > Django static files 是採用本地集結、納入 git 管理的模式，就不需要在正式機上執行這個程序，畢竟自動部署能少些步驟、減少錯誤的發生比較好。
+
+## 異動與服務重啟
+
+每次自動部署完、也就是 Django 專案代碼有異動（已添加新套件、migrate 後），指令會執行 `systemctl restart appname`（執行 `service appname restart` 也可以）。
+
+如果更改了 Gunicorn socket 或 systemd service 檔案，就必須重新載入監聽器（daemon）並重啟 process：
+
+- sudo systemctl daemon-reload
+- sudo systemctl restart appname.socket appname.service
+
+如果異動了 Nginx server block 設定：
+
+- sudo ngint -t （檢查設定有沒有寫錯）
+- sudo systemctl restart nginx
 
 
 ## TODO
