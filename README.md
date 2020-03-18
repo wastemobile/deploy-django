@@ -102,6 +102,13 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 - sudo ngint -t （檢查設定有沒有寫錯）
 - sudo systemctl restart nginx
 
+## Nginx Bad Bot Blocker
+
+[Nginx Bad Bot Blocker](https://github.com/mariusv/nginx-badbot-blocker/tree/master/VERSION_2)
+
+- nginx_bad_bot_blocker.sh
+- update_nginx_blocker.sh
+
 
 ## TODO
 
