@@ -105,6 +105,7 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 
 ## TODO
 
+- 據說設定 gunicorn worker 處理請求的方式中，指定 `-k gthread` （非同步模式）能獲得較高性能，測試看看接下來是否修改。數量一般會設置為 (CPU核心數x2)+1。
 - 針對次網域的新應用設置（套用相同的 Let's Encrypt 證書等）。
 - （已完成）接下來應該是要搞定 Django 的持續部署。
 	- 採 GitHub workflow，且設定為「正式發佈」才自動部署到主機上。
