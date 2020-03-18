@@ -67,12 +67,12 @@ source ./bin/activate
 # upgrade pip
 # pip install --upgrade pip || error_exist "Error upgrading pip to the latest version"
 # install python packages for a django app using pip
-echo "Updating python packages for the app..."
-if [ -f '$APPNAME/requirements.txt']; then
-  pip install -r requirements.txt || error_exist "找不到 requirements.txt，停止更新"
-fi
 cd $APPNAME
 git pull
+echo "Updating python packages for the app..."
+if [ -f 'requirements.txt']; then
+  pip install -r requirements.txt || error_exist "找不到 requirements.txt，停止更新"
+fi
 python manage.py migrate
 deactivate
 EOF
