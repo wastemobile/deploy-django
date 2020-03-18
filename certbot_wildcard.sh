@@ -14,10 +14,13 @@ function check_root
 
 DOMAINNAME=$1
 
+if [ ! -f '~/.secrets/cloudflare.ini' ]; then
+  error_exit "請先將 cloudflare Global API Key 寫至 ~/.secrets/cloudflare.ini"
+fi
+
 # ###################################################################
 # 執行 certbot 建立 wildcard 認證（僅適用 cloudflare DNS）
 # ###################################################################
-echo "put your cloudflare API credentials in ~/.secrets/cloudflare.ini"
-echo "run certbot"
+echo "run certbot wildcard process with cloudflare dns plugin"
 
 certbot certonly --dns-cloudflare --dns-cloudflare-credentials ~/.secrets/cloudflare.ini -d $DOMAINNAME,*.$DOMAINNAME --preferred-challenges dns-01 -i nginx
