@@ -57,6 +57,10 @@
 - 備份 `/webapps/appname_project/appname/config/.env`。
 - 添加 git 倉儲、或以本地的 django repo 替換。
 
+## deploy_sub
+
+
+
 ## TODO
 
 接下來應該是要搞定 Django 的持續部署。
