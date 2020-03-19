@@ -28,7 +28,7 @@ PYTHON_VERSION=3
 # check appname was supplied as argument
 if [ "$APPNAME" == "" ] || [ "$DOMAINNAME" == "" ]; then
 	echo "Usage:"
-	echo "  $ create_django_project_run_env <project> <domain> [python-version]"
+	echo "  $ deploy <project> <domain>"
 	echo
 	echo "  Python version is 2 or 3 and defaults to 3 if not specified. Subversion"
 	echo "  of Python will be determined during runtime. The required Python version"

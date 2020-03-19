@@ -22,6 +22,11 @@ check_root
 
 DOMAINNAME=$1
 
+if [ "$DOMAINNAME" == "" ]; then
+	echo "使用方法："
+	echo "  $ certbot_wildcard <domain>"
+	exit 1
+
 if [ ! -f '~/.secrets/cloudflare.ini' ]; then
   error_exit "請先將 cloudflare Global API Key 寫至 ~/.secrets/cloudflare.ini"
 fi
