@@ -18,6 +18,8 @@ function check_root
     fi
 }
 
+check_root
+
 DOMAINNAME=$1
 
 if [ ! -f '~/.secrets/cloudflare.ini' ]; then

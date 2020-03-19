@@ -18,6 +18,8 @@ function check_root
     fi
 }
 
+check_root
+
 FULLDOMAIN=$1
 
 if [ "$FULLDOMAIN" == "" ]; then

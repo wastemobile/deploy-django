@@ -12,6 +12,8 @@ function check_root
     fi
 }
 
+check_root
+
 PYTHON_VERSION=3
 
 # Prerequisite standard packages. If any of these are missing,

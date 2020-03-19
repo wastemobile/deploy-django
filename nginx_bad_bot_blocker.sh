@@ -15,6 +15,8 @@ function check_root
     fi
 }
 
+check_root
+
 echo "複製 blacklist.conf 到 /etc/nginx/conf.d/"
 wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/conf.d/blacklist.conf -O /etc/nginx/conf.d/blacklist.conf
 

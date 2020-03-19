@@ -18,6 +18,8 @@ function check_root
     fi
 }
 
+check_root
+
 # conventional values that we'll use throughout the script
 APPNAME=$1
 DOMAINNAME=$2
