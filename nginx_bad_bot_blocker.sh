@@ -32,5 +32,16 @@ wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/bots.d
 echo "複製 whitelist-domains.conf 到 /etc/nginx/bots.d"
 wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/bots.d/whitelist-ips.conf -O /etc/nginx/bots.d/whitelist-ips.conf
 
+echo "複製 nginxrepeatoffender.conf 到 /etc/fail2ban/filter.d"
+wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/_fail2ban_addon/filter.d/nginxrepeatoffender.conf -O /etc/fail2ban/filter.d/nginxrepeatoffender.conf
+
+echo "複製 nginxrepeatoffender.conf 到 /etc/fail2ban/action.d"
+wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/_fail2ban_addon/action.d/nginxrepeatoffender.conf -O /etc/fail2ban/action.d/nginxrepeatoffender.conf
+
+echo "新建 /etc/fail2ban/nginx.repeatoffender"
+touch /etc/fail2ban/nginx.repeatoffender
+
+echo "後續還有蠻多手工要做喔⋯⋯"
+
 
 
