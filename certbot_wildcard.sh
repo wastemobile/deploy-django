@@ -28,7 +28,7 @@ if [ "$DOMAINNAME" == "" ]; then
 	exit 1
 fi
 
-if [ ! -f '~/.secrets/cloudflare.ini' ]; then
+if [ ! -f "~/.secrets/cloudflare.ini" ]; then
   error_exit "請先將 cloudflare Global API Key 寫至 ~/.secrets/cloudflare.ini"
 fi
 
