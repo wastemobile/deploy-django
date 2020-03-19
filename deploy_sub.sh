@@ -35,7 +35,7 @@ SUBNAME=$(echo "$FULLDOMAIN" | cut -d"." -f 1)
 # domain is 'punk'
 DOMAIN=$(echo "$FULLDOMAIN" | cut -d"." -f 2)
 # domainname is 'punk.com'
-DOMAINNAME=${DOMAIN#*.}
+DOMAINNAME=${FULLDOMAIN#*.}
 # appname will be 'cyber_punk'
 APPNAME=$SUBNAME\_$DOMAIN
 
@@ -148,7 +148,7 @@ echo "Creating .env"
 cat > /tmp/.env << EOF
 DEBUG=False
 SECRET_KEY=$DJANGO_SECRET_KEY
-ALLOWED_HOSTS=.$DOMAINNAME
+ALLOWED_HOSTS=.$FULLDOMAIN
 DATABASE_URL=psql://$APPNAME:$DBPASSWORD@127.0.0.1/$APPNAME
 CSRF_COOKIE_SECURE=True
 SESSION_COOKIE_SECURE=True
