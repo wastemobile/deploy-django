@@ -86,6 +86,9 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 
 接著到 GitHub 網站（或在本機安裝 hub）進行發佈，就會自動部署新版本了。
 
+- hub release create v0.1.5 -m 'v0.1.5 - test run'
+- hub sync（這樣就發佈了，GitHub 應該會立刻執行 action 去更新主機）
+
 > Django static files 是採用本地集結、納入 git 管理的模式，就不需要在正式機上執行這個程序，畢竟自動部署能少些步驟、減少錯誤的發生比較好。
 
 ## 異動與服務重啟
