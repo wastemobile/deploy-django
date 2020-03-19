@@ -224,7 +224,7 @@ server {
 }
 
 server {
-   listen 443 default ssl;
+   listen 443 ssl;
    server_name $DOMAINNAME www.$DOMAINNAME;
 
    client_max_body_size 5M;
