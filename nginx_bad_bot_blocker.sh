@@ -40,6 +40,7 @@ wget https://github.com/mariusv/nginx-badbot-blocker/raw/master/VERSION_2/_fail2
 
 echo "新建 /etc/fail2ban/nginx.repeatoffender"
 touch /etc/fail2ban/nginx.repeatoffender
+chmod +x /etc/fail2ban/nginx.repeatoffender
 
 echo "後續還有蠻多手工要做喔⋯⋯"
 

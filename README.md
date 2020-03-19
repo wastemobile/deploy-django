@@ -164,5 +164,30 @@ maxretry = 20
 	- 採 GitHub workflow，且設定為「正式發佈」才自動部署到主機上。
 	- GitHub Action 採用最簡單的 ssh-action，苦工其實都在 deploy_ci.sh 裡進行，主要還是為了讓使用者權限等皆維持原樣。
 
+## Boilerplate
+
+- (deploy.sh）針對 domainA.com 建置 Django 網站應用，應用名稱 cyber
+	- **先執行 cerbot_wildcard.sh 自動獲得 Wildcard 證書**
+	- 建立 cyber 用戶名稱（群組＝webapps）
+	- 建立 /webapps/cyber_project 目錄（設置 virtualenv）
+	- 在 /webapps/cyber_project/cyber 目錄自動建立 Django 專案、抓取預設模版，使用 django-environ 多環境設置
+	- 自動生成 Django Secret Key、PostgreSQL 強密碼，產生正式環境 `.env`
+	- 自動新增 PostgreSQL 資料庫與角色（名稱皆為 cyber）
+	- 建立 gunicorn socket 檔案、設置好與 Django 的連線
+	- 建立 systemd 服務管理檔
+		- 以上兩個檔案擺在 /webapps/cyber_project/service，再連結到 /etc/systemd/system/
+	- 產生 /webapps/cyber_project/nginx/cyber.conf Nginx 設定檔，再連結到 /etc/nginx/sites-enabled/ 目錄下
+	- 啟動 gunicorn 服務、重啟 Nginx
+	- Django 雛型網站已上線！
+	- 進入 /webapps/cyber_project/cyber 設置 git、添加 remote，推送上 github
+	- 工作機拉下檔案進行開發，設置好 GitHub Actions
+	- 網站推送任何一版正式發佈（release published）就會自動部署
+- （deploy_sub.sh）新建 Django 應用，使用 cyber.punk.com 次網域
+	- **請確認已申請過 punk.com 的 wildcard 證書！**
+	- 專案將建立在 /webapps/cyber_punk_proj 目錄下
+	- Django 專案會在 /webapps/cyber_punk_proj/cyber_punk
+	- 用戶、資料庫，名稱皆為 cyber_punk
+	- Nginx 將使用 punk.com 的證書
+
 
 
