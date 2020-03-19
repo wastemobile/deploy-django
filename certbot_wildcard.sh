@@ -3,6 +3,12 @@
 # Usage:
 #	$ certbot_wildcard <domainname>
 
+# Exits the script with a message and exit code 1
+function error_exit
+{
+    echo "$1" 1>&2
+    exit 1
+}
 # check if we're being run as root
 function check_root
 {
