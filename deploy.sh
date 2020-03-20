@@ -286,9 +286,10 @@ fi
 
 # 替專屬用戶增加重啟服務的特殊權限（供後續 automated git deploy 使用）
 echo "讓專屬用戶能在自動連續部署完成後，執行重啟 django gunicorn process"
+APPNAMEU=${APPNAME^^}
 cat > /tmp/$APPNAME << EOF
-Cmnd_Alias CMD_RESTART_APP = /bin/systemctl restart $APPNAME
-$APPNAME ALL=(root:root) NOPASSWD: CMD_RESTART_APP
+Cmnd_Alias CMD_RESTART_$APPNAMEU = /bin/systemctl restart $APPNAME
+$APPNAME ALL=(root:root) NOPASSWD: CMD_RESTART_$APPNAMEU
 EOF
 
 mv /tmp/$APPNAME /etc/sudoers.d/

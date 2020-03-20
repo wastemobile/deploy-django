@@ -174,9 +174,9 @@ GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境�
 [nginxrepeatoffender]
 enabled = true
 logpath = /var/log/nginx/access.log
-					/webapps/site1_project/logs/nginx-access.log
-					/webapps/site2_project/logs/nginx-access.log
-					/webapps/sub1_site1_proj/logs/nginx-access.log
+	/webapps/site1_project/logs/nginx-access.log
+	/webapps/site2_project/logs/nginx-access.log
+	/webapps/sub1_site1_proj/logs/nginx-access.log
 filter = nginxrepeatoffender
 banaction = nginxrepeatoffender
 bantime  = 86400   ; 1 day
