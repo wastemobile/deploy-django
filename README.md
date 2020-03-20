@@ -121,10 +121,12 @@ GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境�
 
 ## Nginx Bad Bot Blocker 搭配 fail2ban 服用
 
-[Nginx Bad Bot Blocker](https://github.com/mariusv/nginx-badbot-blocker/tree/master/VERSION_2)
+在 Nginx 已經至少有一個網站跑著之後，通常會透過 [Nginx Bad Bot Blocker](https://github.com/mariusv/nginx-badbot-blocker/tree/master/VERSION_2) 進行一下防護。
 
 - nginx_bad_bot_blocker.sh
-- update_nginx_blocker.sh
+- update_nginx_blocker.sh（尚未使用）
+
+### 執行 nginx_bad_bot_blocker.sh
 
 1. 複製 blacklist.conf 到 /etc/nginx/conf.d/
 2. 建立 /etc/nginx/bots.d 目錄
@@ -132,42 +134,59 @@ GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境�
 4. 複製 ddos.conf 到 /etc/nginx/bots.d/
 5. 複製 whitelist-ips.conf 到 /etc/nginx/bots.d/
 6. 複製 whitelist-domains.conf 到 /etc/nginx/bots.d/
-7. 修改 /etc/nginx/nginx.conf
-8. 在自己的 vhost block 添加：
-	- `include /etc/nginx/bots.d/blockbots.conf;`
-	- `include /etc/nginx/bots.d/ddos.conf;`
-9. 測試設定檔是否正確： `sudo nginx -t`
-10. 重新載入設定： `sudo service nginx reload`
-11. 複製 nginxrepeatoffender.conf 到 /etc/fail2ban/filter.d
-12. 複製 nginxrepeatoffender.conf 到 /etc/fail2ban/action.d
-13. `sudo touch /etc/fail2ban/nginx.repeatoffender`
-14. `sudo +x /etc/fail2ban/nginx.repeatoffender` （不明白這個檔的作用⋯⋯）
-15. 修改 /etc/fail2ban/jail.local
-16. 重啟 fail2ban： `sudo systemctl restart fail2ban`
+7. 複製 nginxrepeatoffender.conf 到 /etc/fail2ban/filter.d
+8. 複製 nginxrepeatoffender.conf 到 /etc/fail2ban/action.d
+9. 建立 /etc/fail2ban/nginx.repeatoffender 檔案、並設置權限（不明白這個檔的作用⋯⋯）
 
+### 接下來需要做些手工⋯⋯
 
-```
-# /etc/nginx/nginx.conf
-...
-server_names_hash_bucket_size 64;
-server_names_hash_max_size 4096;
-limit_req_zone $binary_remote_addr zone=flood:50m rate=90r/s;
-limit_conn_zone $binary_remote_addr zone=addr:50m;
-...
-```
+1. 修改 /etc/nginx/nginx.conf
+	
+	```
+	# /etc/nginx/nginx.conf
+	...
+	server_names_hash_bucket_size 64;
+	server_names_hash_max_size 4096;
+	limit_req_zone $binary_remote_addr zone=flood:50m rate=90r/s;
+	limit_conn_zone $binary_remote_addr zone=addr:50m;
+	...
+	```
 
+2. 將每一個網站的 server block 中這兩行反註解：
+
+	```
+	include /etc/nginx/bots.d/blockbots.conf;
+	include /etc/nginx/bots.d/ddos.conf;
+	```
+
+3. 測試設定檔是否正確： `sudo nginx -t`
+4. 重新載入設定： `sudo service nginx reload`
+
+這樣 Nginx 就獲得相當不錯的防護了。
+
+### 修改 fail2ban 監獄規則
 
 ```
 # /etc/fail2ban/jail.local
 [nginxrepeatoffender]
 enabled = true
-logpath = %(nginx_access_log)s
+logpath = /var/log/nginx/access.log
+					/webapps/site1_project/logs/nginx-access.log
+					/webapps/site2_project/logs/nginx-access.log
+					/webapps/sub1_site1_proj/logs/nginx-access.log
 filter = nginxrepeatoffender
 banaction = nginxrepeatoffender
 bantime  = 86400   ; 1 day
 findtime = 604800   ; 1 week
 maxretry = 20
 ```
+
+重啟 fail2ban： `sudo systemctl restart fail2ban`。
+
+ps. 由於把 nginx log 分散擺放在各處了，logpath 要使用多行撰寫。
+
+
+
 
 
 ## TODO
