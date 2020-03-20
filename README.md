@@ -1,81 +1,96 @@
 # Django 自動化佈署準備程序
 
-## 預先準備
+研究 [deploy-django](https://github.com/harikvpy/deploy-django) 之後，部分與自己使用習慣不符，就一路修改、也增加了一些功能，目前堪用。
 
-1. 新建一個 Linode VPS，完成主機預整備程序（新建非 root 用戶、使用金鑰登入、禁止 root 登入、禁止密碼登入、修改 ssh port；修改時區 tzdata、設置 hostname、設置 ufw 防火牆，最後安裝 fail2ban，編寫一份自己的監獄規則 `/etc/fail2ban/jail.local`）。
-2. 取回 bash scripts `git clone https://github.com/wastemobile/deploy-django.git`
-3. 將 Cloudflare API credentials 寫在 `~/.secrets/cloudflare.ini`，並更改權限、提高一點安全性。
+使用的是 Linode VPS，新建主機後須先完成 [Initial 預配置](https://gist.github.com/wastemobile/5c98e731fdd0d32d0742c2eb5f28837f)，包含新建用戶、時區、主機名稱，以及提升安全性的基礎設置。
 
-## 安裝
+## 可以做到下列事項
 
-1. 首先執行 `sudo -H ./install_pre.sh`，會安裝各種所需的系統套件。
-2. 執行 `sudo ./certbot_wildcard.sh example.com`，會呼叫 cloudflare 驗證、取得 wildcard 證書等。
-3. 執行 `sudo ./deploy.sh appname example.com`
+- 使用 Certbot 搭配 Cloudflare DNS plugin，自動取得 Let's Encrypt Wildcard 證書。
+- 快速配置好 Django 使用 Gunicorn/WSGI，並建好 Nginx 的搭配。
+- 每一個網站都設置獨立用戶名，互不干擾，自動化 git 連續部署時也比較安全。
+- 自動建立 PostgreSQL 資料庫、角色、以及強密碼，連同 Django 密鑰等正式環境必要的配置，自動寫入 `.env` 環境檔中，搭配 [Django-environ](https://github.com/joke2k/django-environ) 使用。（**安裝成功後請務必備份 `.env`！**）
+- 自動設置 virtual 虛擬環境，安裝必要的基礎套件，同時拉回 [django-project-template](https://github.com/wastemobile/django-project-template) 建立 Django 雛型網站。
+- 配置好使用 systemd 管理 WSGI 進程的服務機制。
+- 提供獨立用戶自動連續部署的 script，提供已受限的服務重啟指令權限，提供可利用 GitHub Actions 自動達成 automated git deployment 的腳本。
 
-所有的應用皆會安裝在 `/webapps` 目錄下，以 `appname_project` 為名，Django 應用則安裝在 `/webapps/appname_project/appname` 目錄下（manage.py），主應用皆以 `config` 為名。
+> 欲使用 Certbot wildcard 自動機制，需先設置 `~/.secrets/cloudflare.ini`；若檔案不存在，就會複製預設範本、停止執行，請加入 cloudflare Global API Key 後再次執行。
+> 會在獨立用戶的家目錄下添加 `.gitconfig` 與 `.git-credentials`，能讓後續從私人倉儲執行自動化佈署時不被阻斷，欲使用此功能請先至 GitHub 生成獨立的 personal token 填入。
 
-Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf` 到 `/etc/nginx/sites-enabled/` 目錄。
+**白話一點說：**
 
-設置好 Wsgi 與 Gunicorn 的連接（`/webapps/appname_project/service/appname.socket`），以及 systemd 管理的服務（`appname.service`），同樣 `ln -sf` 到 `/etc/systemd/system/` 目錄下。
+1. 新建一台 vps、初始設置完成後，拉回這個腳本倉儲，執行 `install_pre.sh` 就立刻成為能申請 SSL Wildcard 證書、能跑 Django + PostgreSQL + Nginx 的正式環境。
+2. 由 Cloudflare 管理網域；執行 `cerbot_wildcard.sh <domain>` 就能自動申請 Let's Encrypt Wildcard SSL 證書。
+3. 執行 `deploy.sh <domain>` ，30 秒自動建立 Django 網站（主網域）。
 
-## install_pre
+接下來可重複執行 (2), (3) 步驟，增加不同網域的 Django 應用；或使用 `deploy_sub.sh <sub.domain>` 建立與主網域使用相同 SSL 證書的次網域 Django 網站。
 
-`$ sudo -H ./install_pre.sh`
+## 使用方式
 
-1. 添加 'universe' 'ppa:certbot/certbot' 兩個 certbot 需要的套件倉儲。
-2. 安裝 'git' 'build-essential' 'python3-dev' 'python3-pip' 'nginx' 'postgresql' 'postgresql-contrib' 'libpq-dev' 'software-properties-common' 'certbot' 'python-certbot-nginx' 'python3-certbot-dns-cloudflare' 這些套件
-3. 升級 pip3 後，僅安裝 'virtualenv' 一個必要套件
+### 主機安裝（install_pre.sh）
 
-自動取得的 Let's Encrypt 證書為 wildcard 模式，透過安裝 DNS plugin 自動去向 cloudflare DNS 驗證，若使用不同註冊商就需要修改安裝的 dns-plugin 套件，也需要確認 API。
+在已完成初始設定的 Ubuntu 18.04 主機，以正常用戶登入，並在家目錄執行 `git clone https://github.com/wastemobile/deploy-django.git`，複製自動化代碼到主機上。
 
-## certbot_wildcard
+**僅適用於 Python 3（Ubuntu 18.04 目前預設為 3.6.9）**
 
-`$ sudo ./certbot_wildcard.sh example.com`
+**執行 `$ sudo -H ./install_pre.sh`**
+
+會自動安裝好所有需要的程式套件（添加 certbot 套件庫時、終端機會提示一次確認訊息，按下 `enter` 繼續即可完成）。
+
+### 申請 Let's Encrypt Wildcard 證書（certbot_wildcard.sh）
+
+**執行 `$ sudo ./certbot_wildcard.sh yourdomain.com`**
 
 實際執行指令為 `certbot certonly --dns-cloudflare --dns-cloudflare-credentials ~/.secrets/cloudflare.ini -d $DOMAINNAME,*.$DOMAINNAME --preferred-challenges dns-01 -i nginx`。
 
 過程中需要輸入電郵、確認兩個提問，接著自動向 cloudflare DNS 發出驗證請求。會產生下面的檔案：
 
-- /etc/letsencrypt/live/example.com/fullchain.pem
-- /etc/letsencrypt/live/example.com/privkey.pem
+- /etc/letsencrypt/live/yourdomain.com/fullchain.pem
+- /etc/letsencrypt/live/yourdomain.com/privkey.pem
 - /etc/letsencrypt/options-ssl-nginx.conf
 - /etc/letsencrypt/ssl-dhparams.pem
 
-後續會根據這四個檔案名稱、位置，去修改 Nginx 的設定；注意若在同一台主機上重複執行相同網域的證書取得，會產生類似 `/etc/letsencrypt/live/example.com-0001/fullchain.pem`...這樣的不同檔案，就必須手動去修改 Nginx 設定。
+僅適用 Cloudflare DNS 且須預先設置好 `~/.secert/cloudflare.ini`；若該檔案不存在，腳本會自動複製範本到該目錄，請查詢 cloudflare Global API key 填入後再次執行。
 
-## deploy
+如欲搭配其他 DNS 服務，請先查詢需要安裝的 [DNS Plugins](https://certbot.eff.org/docs/using.html#dns-plugins)與 API key 設置方式，自行安裝需要套件並修改腳本。
 
-`$ sudo ./deploy.sh appname example.com`
+> 後續若想以 blog.yourdomain.com 新增額外的 Django 網站，就無需再次申請憑證。
 
-這程序會做很多事：
+成功取得證書後，請手動執行 `sudo certbot renew --dry-run` ，就會設置好每日的更新檢查、自動續命。
 
-1. 建立 `/webapps/appname_project` 專案目錄。
-2. 新增 appname 用戶與 webapps 群組，appname 的家目錄即為專案目錄。
-3. 建立 python virtualenv 虛擬環境。
-4. 自動安裝 'django' 'django-environ' 'psycopg2-binary' 'gunicorn' 'setproctitle' 等套件。
-5. 建立 `/webapps/appname_project/appname` Django 專案的目錄。
-6. 從 GitHub 抓取 [django-project-template](https://github.com/wastemobile/django-project-template/archive/master.zip) 產生基礎架構，包含使用 django-environ 的多重設置環境。
-7. 自動產生 Django Secret Key 與 PostgreSQL 強密碼，並將密碼連同 Django 正式環境需要的基本配置，寫入 `config/.env` 檔案中。
-8. 自動建立 PostgreSQL 使用者與資料庫（使用上列的強密碼）。
-9. 自動建立執行 Gunicorn 需要的 socket 檔案，配置同名 service 檔，使用 systemd 管理進程。
-10. 自動設置 Nginx conf。
+## 建立主網域的 Django 網站（deploy.sh）
 
-根據上面三步驟執行完、若沒有出錯，直接瀏覽 `https://example.com` 就會看到 Django 網站。
+**執行 `$ sudo ./deploy.sh yourdomain.com`**
 
-- 備份 `/webapps/appname_project/appname/config/.env`。
-- 添加 git 倉儲、或以本地的 django repo 替換。
+完成後開瀏覽器前往 `https://yourdomain.com`，就會看到正常運行的 Django 網站。
 
-## deploy_ci
+網站統一建置在 `/webapps` 目錄，名稱即為 `/webapps/yourdomain_project`，這裡會擺放 virtualenv 虛擬環境、各種設定、logs 紀錄等，同時也是 `yourdomain` 這個獨立用戶的家目錄。
 
-添加一個持續整合更新的 deploy_ci.sh，執行時一樣輸入 $APPNAME，會自動檢查該應用是否存在。
+Django 應用在 `/webapps/yourdomain_project/yourdomain` 目錄，也就是應該設置讓 git 管理的目錄（已經擺好 `.gitignore` 與 `.github/workflows/main.yaml` GitHub Actions 自動化腳本）。
 
-搭配 GitHub Actions 一個最簡單的 ssh-action 就很好用了，因為不需要在每一次主分支有異動就部署，所以設置為 release published 驅動。修改 `main.yml` 後搬到 Django 專案倉儲的 `.github/workflows` 目錄。
+> 並未執行 migrate、建立 superuser 與 collectstatic，因此瀏覽管理後台會顯示不正常。
 
-前往 GitHub 倉儲，建立四個 secrets，分別是 HOST, USERNAME, KEY 與 PORT。
+Nginx 的設定檔在 `/webapps/yourdomain_project/nginx/yourdomain.conf`，軟連結到 `/etc/nginx/sites-enabled/` 目錄。已設好 Wsgi 與 Gunicorn 的連接（`/webapps/yourdomain_project/service/yourdomain.socket`），以及 systemd 管理的服務（`yourdomain.service`），同樣 `ln -sf` 到 `/etc/systemd/system/` 目錄下。
 
-> 這也才發現原來一般使用 git tag 對 GitHub 來說並不算「正式發佈」，終端機可能得要安裝 GitHub 專用 CLI 工具 - [hub](https://github.com/github/hub) 才能做到。
+## 建立次網域的 Django 網站（deploy_sub.sh）
 
-若持續部署使用的是 GitHub 私人倉儲，必須讓 `appname` 用戶記得 github 的密碼（＝額外替這主機生成的 personal token），先輸入 `git config --global credential.helper store`、再執行一次 `git pull`，就會將 token 記下來了，寫在家目錄（亦即 `/webapps/appname_project/.git-credentials`）。
+前提是已經執行過 `certbot_wildcard` 、也就是已在主機上完成了 Wildcard SSL 設置。
+
+程序與建主網域網站幾乎相同，輸入 `sudo ./deploy_sub.sh cyber.punk.com`：
+
+1. 建立了 cyber_punk 用戶（同樣是 webapps 群組）。
+2. 專案位於 `/webapps/cyber_punk_proj` ，Django 網站在 `/webapps/cyber_punk_proj/cyber_punk` 目錄。
+3. Nginx 使用 `punk.com` 相同的證書設置。
+
+## Automated Git Deploy
+
+用於持續整合更新的 deploy_ci.sh 已擺放在專案目錄，搭配 GitHub Actions 一個最簡單的 ssh-action 就很好用了，不希望過於頻繁地在主分支異動就部署，所以設置為 release published 驅動。
+
+前往 GitHub 倉儲，建立四個 secrets，分別是 HOST, USERNAME, KEY 與 PORT，金鑰若有 passphrase 保護，除了新增一個 secret 外，main.yaml 腳本也要添加一下。
+
+> 這也才發現原來一般使用 git tag 對 GitHub 來說並不算「正式發佈」，使用 `brew install hub` 安裝 GitHub 專用 CLI 工具 - [hub](https://github.com/github/hub) 就能簡單做到從終端機直接發佈。
+
+若持續部署使用的是 GitHub 私人倉儲，必須讓專屬用戶記得 github 的密碼（＝額外替這主機生成的 personal token），先輸入 `git config --global credential.helper store`、再執行一次 `git pull`，就會將 token 記下來了，密碼會寫在家目錄下（亦即 `/webapps/appname_project/.git-credentials`）。
 
 發布前的準備：
 
@@ -83,17 +98,16 @@ Nginx 的設定檔在 `/webapps/appname_project/nginx/appname.conf`，再 `ln-sf
 2. (v)python manage.py collectstatic
 3. git add . && git commit -m 'commit message'
 4. git push
+5. hub release create v0.1.5 -m 'v0.1.5 - blog page online'
+6. hub sync
 
-接著到 GitHub 網站（或在本機安裝 hub）進行發佈，就會自動部署新版本了。
-
-- hub release create v0.1.5 -m 'v0.1.5 - test run'
-- hub sync（這樣就發佈了，GitHub 應該會立刻執行 action 去更新主機）
+GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境了。
 
 > Django static files 是採用本地集結、納入 git 管理的模式，就不需要在正式機上執行這個程序，畢竟自動部署能少些步驟、減少錯誤的發生比較好。
 
 ## 異動與服務重啟
 
-每次自動部署完、也就是 Django 專案代碼有異動（已添加新套件、migrate 後），指令會執行 `systemctl restart appname`（執行 `service appname restart` 也可以）。
+每次自動部署完、也就是 Django 專案代碼有異動（已添加新套件、migrate 後），腳本會自動執行 `systemctl restart appname`（執行 `service appname restart` 也可以）。
 
 如果更改了 Gunicorn socket 或 systemd service 檔案，就必須重新載入監聽器（daemon）並重啟 process：
 
@@ -159,35 +173,10 @@ maxretry = 20
 ## TODO
 
 - 據說設定 gunicorn worker 處理請求的方式中，指定 `-k gthread` （非同步模式）能獲得較高性能，測試看看接下來是否修改。數量一般會設置為 (CPU核心數x2)+1。
-- 針對次網域的新應用設置（套用相同的 Let's Encrypt 證書等）。
-- （已完成）接下來應該是要搞定 Django 的持續部署。
+- （done）針對次網域的新應用設置（套用相同的 Let's Encrypt 證書等）。
+- （done）接下來應該是要搞定 Django 的持續部署。
 	- 採 GitHub workflow，且設定為「正式發佈」才自動部署到主機上。
 	- GitHub Action 採用最簡單的 ssh-action，苦工其實都在 deploy_ci.sh 裡進行，主要還是為了讓使用者權限等皆維持原樣。
-
-## Boilerplate
-
-- (deploy.sh）針對 domainA.com 建置 Django 網站應用，應用名稱 cyber
-	- **先執行 cerbot_wildcard.sh 自動獲得 Wildcard 證書**
-	- 建立 cyber 用戶名稱（群組＝webapps）
-	- 建立 /webapps/cyber_project 目錄（設置 virtualenv）
-	- 在 /webapps/cyber_project/cyber 目錄自動建立 Django 專案、抓取預設模版，使用 django-environ 多環境設置
-	- 自動生成 Django Secret Key、PostgreSQL 強密碼，產生正式環境 `.env`
-	- 自動新增 PostgreSQL 資料庫與角色（名稱皆為 cyber）
-	- 建立 gunicorn socket 檔案、設置好與 Django 的連線
-	- 建立 systemd 服務管理檔
-		- 以上兩個檔案擺在 /webapps/cyber_project/service，再連結到 /etc/systemd/system/
-	- 產生 /webapps/cyber_project/nginx/cyber.conf Nginx 設定檔，再連結到 /etc/nginx/sites-enabled/ 目錄下
-	- 啟動 gunicorn 服務、重啟 Nginx
-	- Django 雛型網站已上線！
-	- 進入 /webapps/cyber_project/cyber 設置 git、添加 remote，推送上 github
-	- 工作機拉下檔案進行開發，設置好 GitHub Actions
-	- 網站推送任何一版正式發佈（release published）就會自動部署
-- （deploy_sub.sh）新建 Django 應用，使用 cyber.punk.com 次網域
-	- **請確認已申請過 punk.com 的 wildcard 證書！**
-	- 專案將建立在 /webapps/cyber_punk_proj 目錄下
-	- Django 專案會在 /webapps/cyber_punk_proj/cyber_punk
-	- 用戶、資料庫，名稱皆為 cyber_punk
-	- Nginx 將使用 punk.com 的證書
 
 
 

@@ -29,7 +29,11 @@ if [ "$DOMAINNAME" == "" ]; then
 fi
 
 if [ ! -f "$HOME/.secrets/cloudflare.ini" ]; then
-  error_exit "請先將 cloudflare Global API Key 寫至 ~/.secrets/cloudflare.ini"
+    mkdir -p $HOME/.secrets
+    cp ./cloudflare.ini $HOME/.secrets/
+    chmod 0400 $HOME/.secrets/cloudflare.ini
+    echo "請修改 cloudflare.ini 中的 cloudflare Global API Key"
+    exit
 fi
 
 # ###################################################################
