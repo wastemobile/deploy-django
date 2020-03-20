@@ -190,6 +190,8 @@ ps. 由於把 nginx log 分散擺放在各處了，logpath 要使用多行撰寫
 
 ## TODO
 
+> note. 不知為何從 django project template 安裝的目錄少了 actions 腳本，先加回倉儲測試。
+
 - 據說設定 gunicorn worker 處理請求的方式中，指定 `-k gthread` （非同步模式）能獲得較高性能，測試看看接下來是否修改。數量一般會設置為 (CPU核心數x2)+1。
 - （done）針對次網域的新應用設置（套用相同的 Let's Encrypt 證書等）。
 - （done）接下來應該是要搞定 Django 的持續部署。
