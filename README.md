@@ -128,6 +128,8 @@ GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境�
 
 ### 執行 nginx_bad_bot_blocker.sh
 
+會自動連線下載、處理好這些先行事項。
+
 1. 複製 blacklist.conf 到 /etc/nginx/conf.d/
 2. 建立 /etc/nginx/bots.d 目錄
 3. 複製 blockbots.conf 到 /etc/nginx/bots.d/
@@ -159,8 +161,9 @@ GitHub Actions 就幫忙自動部署 Django project 的新版本到正式環境�
 	include /etc/nginx/bots.d/ddos.conf;
 	```
 
-3. 測試設定檔是否正確： `sudo nginx -t`
-4. 重新載入設定： `sudo service nginx reload`
+3. 設置 `/etc/nginx/bots.d/whitelist-ips.conf` 與 `whitelist-domains.conf` 這兩個白名單。
+4. 測試設定檔是否正確： `sudo nginx -t`
+5. 重新載入設定： `sudo service nginx reload`
 
 這樣 Nginx 就獲得相當不錯的防護了。
 
