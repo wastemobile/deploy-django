@@ -188,10 +188,6 @@ maxretry = 20
 
 ps. 由於把 nginx log 分散擺放在各處了，logpath 要使用多行撰寫。
 
-
-
-
-
 ## TODO
 
 - 據說設定 gunicorn worker 處理請求的方式中，指定 `-k gthread` （非同步模式）能獲得較高性能，測試看看接下來是否修改。數量一般會設置為 (CPU核心數x2)+1。
@@ -200,5 +196,10 @@ ps. 由於把 nginx log 分散擺放在各處了，logpath 要使用多行撰寫
 	- 採 GitHub workflow，且設定為「正式發佈」才自動部署到主機上。
 	- GitHub Action 採用最簡單的 ssh-action，苦工其實都在 deploy_ci.sh 裡進行，主要還是為了讓使用者權限等皆維持原樣。
 
+## 參考資料
+
+- [deploy-django by harikvpy](https://github.com/harikvpy/deploy-django)
+- [How to Pass Arguments to a Bash Script](https://www.lifewire.com/pass-arguments-to-bash-script-2200571)
+- [How To Edit the Sudoers File on Ubuntu and CentOS](https://do.co/2J1IF6J)
 
 
