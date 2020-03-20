@@ -40,7 +40,7 @@ fi
 # 設置主網域應用名稱、專案目錄
 APPNAME=$(echo "$DOMAINNAME" | cut -d"." -f 1)
 GROUPNAME=webapps
-APPFOLDER=$APPNAME_project
+APPFOLDER=$APPNAME\_project
 APPFOLDERPATH=/$GROUPNAME/$APPFOLDER
 
 # 只支援 Python 3
