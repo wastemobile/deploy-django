@@ -31,6 +31,7 @@ fi
 if [ ! -f "$HOME/.secrets/cloudflare.ini" ]; then
     mkdir -p $HOME/.secrets
     cp ./cloudflare.ini $HOME/.secrets/
+    chown $SUDO_USER $HOHE/.secrets/cloudflare.ini
     chmod 0400 $HOME/.secrets/cloudflare.ini
     echo "請修改 cloudflare.ini 中的 cloudflare Global API Key"
     exit
