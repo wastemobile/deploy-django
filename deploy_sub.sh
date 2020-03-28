@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Usage:
-#	$ deploy_sub.sh <fulldomainname>
+#	$ deploy_sub.sh <fulldomainname> <django_repo>
 
 # Exits the script with a message and exit code 1
 function error_exit
@@ -21,6 +21,7 @@ function check_root
 check_root
 
 FULLDOMAIN=$1
+REPOSITORY=$2
 
 # 檢查是否輸入網域
 if [ "$FULLDOMAIN" == "" ]; then
@@ -127,7 +128,13 @@ su -l $APPNAME << EOF
 source ./bin/activate
 mkdir $APPNAME
 cd $APPNAME
-django-admin.py startproject --template https://github.com/wastemobile/django-project-template/archive/master.zip config .
+if [ -z "$REPOSITORY" ]
+then
+  django-admin.py startproject --template https://github.com/wastemobile/django-project-template/archive/master.zip config .
+else
+  echo "請確認 Django project's root 設置為 config，否則不會成功運作。"
+  git clone "$REPOSITORY" .
+fi
 EOF
 
 # ###################################################################
