@@ -4,6 +4,8 @@
 
 > 此專案代碼僅依個人慣例設置與使用，使用開放倉儲只是為了便利開啟新專案時、無需登入 GitHub 即可取得。
 
+於登入用戶的家目錄中執行 `git clone https://github.com/wastemobile/deploy-django.git` 即可取得這些執行腳本。
+
 使用的是 Linode VPS，新建主機後須先完成 [Initial 預配置](https://gist.github.com/wastemobile/5c98e731fdd0d32d0742c2eb5f28837f)，包含新建用戶、時區、主機名稱，以及提升安全性的基礎設置。
 
 ## 可以做到下列事項
